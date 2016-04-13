@@ -30,19 +30,19 @@ const int greenLed2 = 7;
 const int greenLed3 = 4;
 const int greenLed4 = 2;  
 const int redLed1 = 6;     // Red LEDs count the time left
-const int redLed2 = 9;     // in a pomodoro, or a break
-const int redLed3 = 10;    // They need to be connected to PWM pins
-const int redLed4 = 3;
-const int redLed5 = 5;
+//const int redLed2 = 9;     // in a pomodoro, or a break
+//const int redLed3 = 10;    // They need to be connected to PWM pins
+//const int redLed4 = 3;
+//const int redLed5 = 5;
 const int blueLed1 = 1;    // Short break indicator
 const int blueLed2 = 1;    // Long break indicator
 const int button1 = 11;    // Start/Interrupt
 const int button2 = 12;    // Reset
 
 // Constants for time values (in minutes)
-const int pomodoroTime = 5;  // Should be 25
-const int shortBreakTime = 1; // Should be 5
-const int longBreakTime = 1; // Should be 15
+const int pomodoroTime = 25;  // Should be 25
+const int shortBreakTime = 5; // Should be 5
+const int longBreakTime = 15; // Should be 15
 
 // Fields to hold state
 int currentMode = IDLE;    // Values are IDLE, SHORT_BREAK, LONG_BREAK, POMODORO, IN_PROCESS
@@ -81,10 +81,10 @@ void setup() {
   pinMode(greenLed3, OUTPUT);
   pinMode(greenLed4, OUTPUT);
   pinMode(redLed1, OUTPUT);
-  pinMode(redLed2, OUTPUT);
-  pinMode(redLed3, OUTPUT);
-  pinMode(redLed4, OUTPUT);
-  pinMode(redLed5, OUTPUT);
+//  pinMode(redLed2, OUTPUT);
+//  pinMode(redLed3, OUTPUT);
+//  pinMode(redLed4, OUTPUT);
+//  pinMode(redLed5, OUTPUT);
   pinMode(blueLed1, OUTPUT);
   pinMode(blueLed2, OUTPUT);
   pinMode(button1, INPUT);
@@ -93,8 +93,8 @@ void setup() {
   // Clear the display, and then turn on all segments and decimals
   s7s.begin(9600);  
   clearDisplay();  // Clears display, resets cursor
-  s7s.print("-HI-");  // Displays -HI- on all digits
-  setDecimals(0b111111);  // Turn on all decimals, colon, apos
+  s7s.print("PODO");  // Displays -HI- on all digits
+//  setDecimals(0b111111);  // Turn on all decimals, colon, apos
   setBrightness(255);  // High brightness
   
 }
@@ -248,8 +248,9 @@ void displayState() {
       millisPassed = currentMillis - stateStartTime;
       // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
       numLeds = ((float)shortBreakTime - convertMillisToMinute(millisPassed)) / (shortBreakTime / 5); 
+      s7s.print("REST");  
       // Light em up
-      lightRedLeds(numLeds);
+      lightRedLeds();
       break;
     case LONG_BREAK:
       // We're on a break, light a break light
@@ -258,8 +259,9 @@ void displayState() {
       millisPassed = currentMillis - stateStartTime;
       // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
       numLeds = ((float)longBreakTime - convertMillisToMinute(millisPassed)) / (longBreakTime / 5);
+      s7s.print("LONG");  // Displays -HI- on all digits
       // Light em up
-      lightRedLeds(numLeds);
+      lightRedLeds();
       break;
     case POMODORO:
       // Turn off the break lights
@@ -269,20 +271,20 @@ void displayState() {
       
       // Figure out how much time has passed
       millisPassed = currentMillis - stateStartTime;
-      s7s.print(convertMillisToSeconds(millisPassed));
+//      s7s.print(convertMillisToSeconds(millisPassed));
 
       
       // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
-      numLeds = ((float)pomodoroTime - convertMillisToMinute(millisPassed)) / (pomodoroTime / 5);
+//      numLeds = ((float)pomodoroTime - convertMillisToMinute(millisPassed)) / (pomodoroTime / 5);
       // Light em up
-      lightRedLeds(numLeds);
+      lightRedLeds();
       break;
     case IN_PROCESS:
       if (modeFinished) {
         blinkRedLeds();
       }
       else {
-        lightRedLeds(0);
+        analogWrite(redLed1, LOW);
       }
       break;
     default:
@@ -295,10 +297,6 @@ void displayState() {
 // Blink the red LEDs
 void blinkRedLeds() {
   digitalWrite(redLed1, blinkLed());
-  digitalWrite(redLed2, blinkLed());
-  digitalWrite(redLed3, blinkLed());
-  digitalWrite(redLed4, blinkLed());
-  digitalWrite(redLed5, blinkLed());
 }
 
 // Blink the green LEDs
@@ -309,98 +307,15 @@ void blinkGreenLeds() {
   digitalWrite(greenLed4, blinkLed());
 }
 
-// Light the number of red LEDs specified
-// This shoudl be deleted
-void lightRedLedsOlde(float numLeds) {
-  if (numLeds > 4) {
-    digitalWrite(redLed1, HIGH);
-    digitalWrite(redLed2, HIGH);
-    digitalWrite(redLed3, HIGH);
-    digitalWrite(redLed4, HIGH);
-    digitalWrite(redLed5, blinkLed());
-  }
-  else if (numLeds > 3) {
-    digitalWrite(redLed1, HIGH);
-    digitalWrite(redLed2, HIGH);
-    digitalWrite(redLed3, HIGH);
-    digitalWrite(redLed4, blinkLed());
-    digitalWrite(redLed5, LOW);
-  }
-  else if (numLeds > 2) {
-    digitalWrite(redLed1, HIGH);
-    digitalWrite(redLed2, HIGH);
-    digitalWrite(redLed3, blinkLed());
-    digitalWrite(redLed4, LOW);
-    digitalWrite(redLed5, LOW);
-  }
-  else if (numLeds > 1) {
-    digitalWrite(redLed1, HIGH);
-    digitalWrite(redLed2, blinkLed());
-    digitalWrite(redLed3, LOW);
-    digitalWrite(redLed4, LOW);
-    digitalWrite(redLed5, LOW);  
-  }
- else if (numLeds > 0) {
-     digitalWrite(redLed1, blinkLed());
-     digitalWrite(redLed2, LOW);
-     digitalWrite(redLed3, LOW);
-     digitalWrite(redLed4, LOW);
-     digitalWrite(redLed5, LOW);
- }
- else {
-     digitalWrite(redLed1, LOW);
-     digitalWrite(redLed2, LOW);
-     digitalWrite(redLed3, LOW);
-     digitalWrite(redLed4, LOW);
-     digitalWrite(redLed5, LOW);
- }
-}
+//// Light the number of red LEDs specified
+//void lightRedLedsOlde() {
+//  digitalWrite(redLed1, blinkLed());
+//}
 
 // Light the number of red LEDs specified
 // With a nice fade
-void lightRedLeds(float numLeds) {
-  if (numLeds > 4) {
-    analogWrite(redLed1, maxLedBrightness);
-    analogWrite(redLed2, maxLedBrightness);
-    analogWrite(redLed3, maxLedBrightness);
-    analogWrite(redLed4, maxLedBrightness);
-    analogWrite(redLed5, fadeLed());
-  }
-  else if (numLeds > 3) {
-    analogWrite(redLed1, maxLedBrightness);
-    analogWrite(redLed2, maxLedBrightness);
-    analogWrite(redLed3, maxLedBrightness);
-    analogWrite(redLed4, fadeLed());
-    analogWrite(redLed5, LOW);
-  }
-  else if (numLeds > 2) {
-    analogWrite(redLed1, maxLedBrightness);
-    analogWrite(redLed2, maxLedBrightness);
-    analogWrite(redLed3, fadeLed());
-    analogWrite(redLed4, LOW);
-    analogWrite(redLed5, LOW);
-  }
-  else if (numLeds > 1) {
-    analogWrite(redLed1, maxLedBrightness);
-    analogWrite(redLed2, fadeLed());
-    analogWrite(redLed3, LOW);
-    analogWrite(redLed4, LOW);
-    analogWrite(redLed5, LOW);  
-  }
- else if (numLeds > 0) {
-     analogWrite(redLed1, fadeLed());
-     analogWrite(redLed2, LOW);
-     analogWrite(redLed3, LOW);
-     analogWrite(redLed4, LOW);
-     analogWrite(redLed5, LOW);
- }
- else {
-     analogWrite(redLed1, LOW);
-     analogWrite(redLed2, LOW);
-     analogWrite(redLed3, LOW);
-     analogWrite(redLed4, LOW);
-     analogWrite(redLed5, LOW);
- }
+void lightRedLeds() {
+  analogWrite(redLed1, fadeLed());
 }
 
 // Light the number of green LEDs specified
@@ -476,10 +391,6 @@ void turnAllOn() {
  digitalWrite(greenLed3, HIGH);
  digitalWrite(greenLed4, HIGH);
  digitalWrite(redLed1, HIGH);
- digitalWrite(redLed2, HIGH);
- digitalWrite(redLed3, HIGH);
- digitalWrite(redLed4, HIGH);
- digitalWrite(redLed5, HIGH);
  digitalWrite(blueLed1, HIGH);
  digitalWrite(blueLed2, HIGH);
 }
@@ -491,10 +402,6 @@ void turnAllOff() {
  digitalWrite(greenLed3, LOW);
  digitalWrite(greenLed4, LOW);
  digitalWrite(redLed1, LOW);
- digitalWrite(redLed2, LOW);
- digitalWrite(redLed3, LOW);
- digitalWrite(redLed4, LOW);
- digitalWrite(redLed5, LOW);
  digitalWrite(blueLed1, LOW);
  digitalWrite(blueLed2, LOW);
 }
