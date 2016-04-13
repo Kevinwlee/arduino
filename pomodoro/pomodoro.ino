@@ -13,7 +13,7 @@
   Licensed under the MIT license.
   
 */
-
+#include <SoftwareSerial.h>
 // Define debug state (1 for debug, 0 for not)
 #define DEBUG 1
 
@@ -34,7 +34,7 @@ const int redLed2 = 9;     // in a pomodoro, or a break
 const int redLed3 = 10;    // They need to be connected to PWM pins
 const int redLed4 = 3;
 const int redLed5 = 5;
-const int blueLed1 = 0;    // Short break indicator
+const int blueLed1 = 1;    // Short break indicator
 const int blueLed2 = 1;    // Long break indicator
 const int button1 = 11;    // Start/Interrupt
 const int button2 = 12;    // Reset
@@ -66,6 +66,12 @@ int ledBrightness = minLedBrightness;    // The current brightness of the LED(s)
 int fadeInterval = 1500;                 // In milliseconds, the amount of time for fade cycle
 long previousFadeMillis = 0;             // Last time the fade LED was updated
 
+//s7s
+const int softwareTx = 13;
+const int softwareRx = 0;
+SoftwareSerial s7s(softwareRx, softwareTx);
+char tempString[10];
+
 void setup() {
   if (DEBUG) Serial.begin(9600);
   
@@ -83,6 +89,14 @@ void setup() {
   pinMode(blueLed2, OUTPUT);
   pinMode(button1, INPUT);
   pinMode(button2, INPUT);
+
+  // Clear the display, and then turn on all segments and decimals
+  s7s.begin(9600);  
+  clearDisplay();  // Clears display, resets cursor
+  s7s.print("-HI-");  // Displays -HI- on all digits
+  setDecimals(0b111111);  // Turn on all decimals, colon, apos
+  setBrightness(255);  // High brightness
+  
 }
 
 void loop() {
@@ -117,7 +131,7 @@ void checkButtons() {
     if ((millis() - stateStartTime) < 1000) {
       return;
     }
-    
+    clearDisplay();
     switch (currentMode) {
       case IDLE:
         resetPomodoroCount();
@@ -215,7 +229,7 @@ void displayState() {
   if (currentMode != IDLE) {
     lightGreenLeds(currentPomodoroCount);
   }
-  
+
   // Light up leds based on the current state
   switch (currentMode) {
     case IDLE:
@@ -251,12 +265,12 @@ void displayState() {
       // Turn off the break lights
       digitalWrite(blueLed1, LOW);
       digitalWrite(blueLed2, LOW);
+
+      
       // Figure out how much time has passed
       millisPassed = currentMillis - stateStartTime;
-      
-      Serial.print(convertMillisToMinute(millisPassed));
-      Serial.print(":");
-      Serial.println(convertMillisToSeconds(millisPassed));
+      s7s.print(convertMillisToSeconds(millisPassed));
+
       
       // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
       numLeds = ((float)pomodoroTime - convertMillisToMinute(millisPassed)) / (pomodoroTime / 5);
@@ -507,4 +521,29 @@ void resetPomodoroCount() {
   currentPomodoroCount = 0;
 }
 
+
+void clearDisplay()
+{
+  s7s.write(0x76);  // Clear display command
+}
+
+// Set the displays brightness. Should receive byte with the value
+//  to set the brightness to
+//  dimmest------------->brightest
+//     0--------127--------255
+void setBrightness(byte value)
+{
+  s7s.write(0x7A);  // Set brightness command byte
+  s7s.write(value);  // brightness data byte
+}
+
+// Turn on any, none, or all of the decimals.
+//  The six lowest bits in the decimals parameter sets a decimal 
+//  (or colon, or apostrophe) on or off. A 1 indicates on, 0 off.
+//  [MSB] (X)(X)(Apos)(Colon)(Digit 4)(Digit 3)(Digit2)(Digit1)
+void setDecimals(byte decimals)
+{
+  s7s.write(0x77);
+  s7s.write(decimals);
+}
 
