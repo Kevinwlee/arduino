@@ -30,12 +30,8 @@ const int greenLed2 = 7;
 const int greenLed3 = 4;
 const int greenLed4 = 2;  
 const int redLed1 = 6;     // Red LEDs count the time left
-//const int redLed2 = 9;     // in a pomodoro, or a break
-//const int redLed3 = 10;    // They need to be connected to PWM pins
-//const int redLed4 = 3;
-//const int redLed5 = 5;
-const int blueLed1 = 1;    // Short break indicator
-const int blueLed2 = 1;    // Long break indicator
+const int blueLed1 = 10;    // Short break indicator
+const int blueLed2 = 3;    // Long break indicator
 const int button1 = 11;    // Start/Interrupt
 const int button2 = 12;    // Reset
 
@@ -71,6 +67,7 @@ const int softwareTx = 13;
 const int softwareRx = 0;
 SoftwareSerial s7s(softwareRx, softwareTx);
 char tempString[10];
+char tempStringM[10];
 
 void setup() {
   if (DEBUG) Serial.begin(9600);
@@ -81,10 +78,6 @@ void setup() {
   pinMode(greenLed3, OUTPUT);
   pinMode(greenLed4, OUTPUT);
   pinMode(redLed1, OUTPUT);
-//  pinMode(redLed2, OUTPUT);
-//  pinMode(redLed3, OUTPUT);
-//  pinMode(redLed4, OUTPUT);
-//  pinMode(redLed5, OUTPUT);
   pinMode(blueLed1, OUTPUT);
   pinMode(blueLed2, OUTPUT);
   pinMode(button1, INPUT);
@@ -94,7 +87,7 @@ void setup() {
   s7s.begin(9600);  
   clearDisplay();  // Clears display, resets cursor
   s7s.print("PODO");  // Displays -HI- on all digits
-//  setDecimals(0b111111);  // Turn on all decimals, colon, apos
+  setDecimals(0b00010000);  // Turn on all decimals, colon, apos
   setBrightness(255);  // High brightness
   
 }
@@ -108,6 +101,8 @@ void loop() {
   
   // Display current state
   displayState();
+
+  displayTime();
 }
 
 // Check the buttons to see if one of them is pressed
@@ -266,19 +261,10 @@ void displayState() {
     case POMODORO:
       // Turn off the break lights
       digitalWrite(blueLed1, LOW);
-      digitalWrite(blueLed2, LOW);
-
-      
-      // Figure out how much time has passed
-      millisPassed = currentMillis - stateStartTime;
-//      s7s.print(convertMillisToSeconds(millisPassed));
-
-      
-      // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
-//      numLeds = ((float)pomodoroTime - convertMillisToMinute(millisPassed)) / (pomodoroTime / 5);
-      // Light em up
+      digitalWrite(blueLed2, LOW);      
       lightRedLeds();
       break;
+      
     case IN_PROCESS:
       if (modeFinished) {
         blinkRedLeds();
@@ -307,12 +293,7 @@ void blinkGreenLeds() {
   digitalWrite(greenLed4, blinkLed());
 }
 
-//// Light the number of red LEDs specified
-//void lightRedLedsOlde() {
-//  digitalWrite(redLed1, blinkLed());
-//}
-
-// Light the number of red LEDs specified
+// Light the Pomodor LED
 // With a nice fade
 void lightRedLeds() {
   analogWrite(redLed1, fadeLed());
@@ -415,7 +396,7 @@ int convertMillisToMinute(long millis) {
 }
 
 int convertMillisToSeconds(long millis) {
-  return (millis / 1000) % 60;
+  return (millis / 1000);
 }
 
 // This sets the current mode
@@ -428,6 +409,20 @@ void resetPomodoroCount() {
   currentPomodoroCount = 0;
 }
 
+void displayTime() {
+  unsigned long currentMillis = millis();
+  unsigned long millisPassed;
+
+  // Figure out how much time has passed
+  millisPassed = currentMillis - stateStartTime;
+  int seconds = convertMillisToSeconds(millisPassed);
+  int STm = (seconds / 60) % 60;
+  int STs = seconds % 60;
+  
+  sprintf(tempString, "%.2d%.2d", STm, STs);
+  setDecimals(0b00010000);
+  s7s.print(tempString);
+}
 
 void clearDisplay()
 {
