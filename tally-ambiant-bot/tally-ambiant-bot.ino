@@ -21,10 +21,9 @@ const char PrivateKey[] = "dqWdDqZG1ZUXZKnBVbWx";
 //Pins
 const int LED_PIN = 5; // Thing's onboard, green LED
 const int ANALOG_PIN = A0; // The only analog pin on the Thing
-const int DIGITAL_PIN = 12; // Digital pin to be read
 
 //s7s
-const int softwareTx = 8;
+const int softwareTx = 12;
 const int softwareRx = 7;
 SoftwareSerial s7s(softwareRx, softwareTx);
 char tempString[10];
@@ -32,6 +31,7 @@ char tempString[10];
 // Config
 const unsigned long postRate = 60000;
 unsigned long lastPost = 0;
+int pass = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -79,31 +79,20 @@ void loop() {
     Serial.println("Failed to read from DHT sensor!");
     return;
   }
-
-  // Compute heat index in Fahrenheit (the default)
-  float hif = dht.computeHeatIndex(f, h);
-  // Compute heat index in Celsius (isFahreheit = false)
-  float hic = dht.computeHeatIndex(t, h, false);
-
-  Serial.print("Humidity: ");
-  Serial.print(h);
-  Serial.print(" %\t");
-  Serial.print("Temperature: ");
-  Serial.print(t);
-  writeToDisplay(t);
-  Serial.print(" *C ");
-  Serial.print(f);
-  Serial.print(" *F\t");
-  Serial.print("Heat index: ");
-  Serial.print(hic);
-  Serial.print(" *C ");
-  Serial.print(hif);
-  Serial.println(" *F");
-
+  
   int light = analogRead(ANALOG_PIN); 
-  Serial.println("Light");
-  Serial.println(light);
-
+  
+  if (pass == 0) {
+    writeToDisplay(f);
+    pass++;
+  } else if (pass == 1 {
+    writeToDisplay(h);
+    pass++;
+  } else {
+    writeToDisplay(light);
+    pass = 0;
+  }
+  
   if ((lastPost + postRate <= millis()) || lastPost == 0)
   {
     Serial.println("Posting to Phant!");
@@ -160,8 +149,6 @@ void initHardware()
   pinMode(DIGITAL_PIN, INPUT_PULLUP); // Setup an input to read
   pinMode(LED_PIN, OUTPUT); // Set LED as output
   digitalWrite(LED_PIN, HIGH); // LED off
-  // Don't need to set ANALOG_PIN as input, 
-  // that's all it can be.
 }
 
 int postToPhant()
@@ -216,7 +203,7 @@ int postToPhant()
   return 1; // Return success
 }
 
-void writeToDisplay(float temp) {
+void writeToDisplay(int temp) {
   sprintf(tempString, "%4d", temp);
   s7s.print(tempString);
 }
