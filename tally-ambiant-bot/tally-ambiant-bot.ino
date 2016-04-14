@@ -85,7 +85,7 @@ void loop() {
   if (pass == 0) {
     writeToDisplay(f);
     pass++;
-  } else if (pass == 1 {
+  } else if (pass == 1) {
     writeToDisplay(h);
     pass++;
   } else {
@@ -146,7 +146,6 @@ void connectWiFi()
 void initHardware()
 {
   Serial.begin(9600);
-  pinMode(DIGITAL_PIN, INPUT_PULLUP); // Setup an input to read
   pinMode(LED_PIN, OUTPUT); // Set LED as output
   digitalWrite(LED_PIN, HIGH); // LED off
 }
