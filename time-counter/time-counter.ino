@@ -80,6 +80,12 @@ void turnOffLeds() {
   digitalWrite(funOutPin, LOW);
 }
 
+void pauseTimers() {
+}
+
+void sartTimer(int timer) {
+}
+
 void handleFirst() {
   firstReading = digitalRead(firstInPin);
   if (firstReading != firstPrevious) {
@@ -87,7 +93,8 @@ void handleFirst() {
       turnOffLeds();
       digitalWrite(firstOutPin, HIGH);
       //puase other timers
-      //start this timer      
+      //start this timer 
+      stateStartTime = millis();
     }
     delay(50);
   }
@@ -102,6 +109,7 @@ void handleSecond() {
       digitalWrite(secondOutPin, HIGH);
       //puase other timers
       //start this timer
+      stateStartTime = millis();
     }
     delay(50);
   }
@@ -115,7 +123,8 @@ void handleThird() {
       turnOffLeds();
       digitalWrite(thirdOutPin, HIGH);
       //puase other timers
-      //start this timer      
+      //start this timer
+      stateStartTime = millis();  
     }
     delay(50);
   }
@@ -129,7 +138,8 @@ void handleFun() {
       turnOffLeds();
       digitalWrite(funOutPin, HIGH);
       //puase other timers
-      //start this timer      
+      //start this timer
+      stateStartTime = millis();    
     }
     delay(50);
   }
@@ -142,10 +152,18 @@ void writeToDisplay() {
   unsigned long millisPassed;
   millisPassed = currentMillis - stateStartTime;
   int seconds = millisPassed/1000;
-  int STh = (seconds / 60 / 60) % 60;  
+  int STh = (seconds / 60 / 60);  
   int STm = (seconds / 60) % 60;
   int STs = seconds % 60;
 
+  // Blink the colon
+  float tick = seconds %2;
+  if (tick == 0) {
+    setDecimals(0b00000000);
+  } else {
+    setDecimals(0b00010000);
+  }
+  
   //Formant the String
   if (seconds > 3600000) {
     sprintf(tempString, "%.2d%.2d", STh, STm);
