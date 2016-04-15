@@ -39,13 +39,13 @@ const int button2 = 12;    // Reset
 //Buzzer
 const int buzzer = 5;
 const int buzzerTone = 262;
-const int completePomodoroTime = 1000;
+const int completePomodoroTime = 1500;
 const int completeBreakTime = 500;
 
 // Constants for time values (in minutes)
-const int pomodoroTime = 1;  // Should be 25
-const int shortBreakTime = 1; // Should be 5
-const int longBreakTime = 1; // Should be 15
+const int pomodoroTime = 25;  // Should be 25
+const int shortBreakTime = 5; // Should be 5
+const int longBreakTime = 15; // Should be 15
 
 // Fields to hold state
 int currentMode = IDLE;    // Values are IDLE, SHORT_BREAK, LONG_BREAK, POMODORO, IN_PROCESS
@@ -97,7 +97,6 @@ void setup() {
   setDecimals(0b00010000);  // Turn on all decimals, colon, apos
   setBrightness(255);  // High brightness
   
-  tone(buzzer,buzzerTone,completeBreakTime);
 }
 
 void loop() {
@@ -183,7 +182,7 @@ void incrementTime() {
       // short break code here
       // If break is over, change modes
       if(currentMillis - stateStartTime > convertMinuteToMillis(shortBreakTime)){
-        setCurrentMode(IN_PROCESS);
+        setCurrentMode(IN_PROCESS);        
         tone(buzzer,buzzerTone,completeBreakTime);
         nextMode = POMODORO;
         modeFinished = 1;
@@ -192,8 +191,8 @@ void incrementTime() {
     case LONG_BREAK:
       // long break code here
       if(currentMillis - stateStartTime > convertMinuteToMillis(longBreakTime)){
-        setCurrentMode(IDLE);
-        tone(buzzer,buzzerTone,completeBreakTime);
+        setCurrentMode(IDLE);        
+        tone(buzzer,buzzerTone,completeBreakTime);        
         nextMode = POMODORO;
         modeFinished = 1;
       }
@@ -202,8 +201,8 @@ void incrementTime() {
       // pomodoro code here
       if(currentMillis - stateStartTime > convertMinuteToMillis(pomodoroTime)){
         currentPomodoroCount++;
-        modeFinished = 1;
-        tone(buzzer,buzzerTone,completePomodoroTime);        
+        modeFinished = 1;        
+        tone(buzzer,buzzerTone,completePomodoroTime);             
         if (currentPomodoroCount == 4) {
           setCurrentMode(LONG_BREAK);
           nextMode = LONG_BREAK;
@@ -254,7 +253,7 @@ void displayState() {
       millisPassed = currentMillis - stateStartTime;
       // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
       numLeds = ((float)shortBreakTime - convertMillisToMinute(millisPassed)) / (shortBreakTime / 5); 
-      s7s.print("REST");  
+        
       // Light em up
       lightRedLeds();
       break;
@@ -265,7 +264,7 @@ void displayState() {
       millisPassed = currentMillis - stateStartTime;
       // Figure out how many LEDs to light up, cast a variable as a float so we get a float back
       numLeds = ((float)longBreakTime - convertMillisToMinute(millisPassed)) / (longBreakTime / 5);
-      s7s.print("LONG");  // Displays -HI- on all digits
+      
       // Light em up
       lightRedLeds();
       break;
@@ -421,10 +420,6 @@ void resetPomodoroCount() {
 }
 
 void displayTime() {
-  if (currentMode == SHORT_BREAK || currentMode == LONG_BREAK) {
-    return;
-  }
-
   unsigned long currentMillis = millis();
   unsigned long millisPassed;
 
