@@ -14,6 +14,7 @@
   
 */
 #include <SoftwareSerial.h>
+
 // Define debug state (1 for debug, 0 for not)
 #define DEBUG 1
 
@@ -35,10 +36,16 @@ const int blueLed2 = 3;    // Long break indicator
 const int button1 = 11;    // Start/Interrupt
 const int button2 = 12;    // Reset
 
+//Buzzer
+const int buzzer = 5;
+const int buzzerTone = 262;
+const int completePomodoroTime = 1000;
+const int completeBreakTime = 500;
+
 // Constants for time values (in minutes)
-const int pomodoroTime = 25;  // Should be 25
-const int shortBreakTime = 5; // Should be 5
-const int longBreakTime = 15; // Should be 15
+const int pomodoroTime = 1;  // Should be 25
+const int shortBreakTime = 1; // Should be 5
+const int longBreakTime = 1; // Should be 15
 
 // Fields to hold state
 int currentMode = IDLE;    // Values are IDLE, SHORT_BREAK, LONG_BREAK, POMODORO, IN_PROCESS
@@ -90,6 +97,7 @@ void setup() {
   setDecimals(0b00010000);  // Turn on all decimals, colon, apos
   setBrightness(255);  // High brightness
   
+  tone(buzzer,buzzerTone,completeBreakTime);
 }
 
 void loop() {
@@ -176,6 +184,7 @@ void incrementTime() {
       // If break is over, change modes
       if(currentMillis - stateStartTime > convertMinuteToMillis(shortBreakTime)){
         setCurrentMode(IN_PROCESS);
+        tone(buzzer,buzzerTone,completeBreakTime);
         nextMode = POMODORO;
         modeFinished = 1;
       }
@@ -184,6 +193,7 @@ void incrementTime() {
       // long break code here
       if(currentMillis - stateStartTime > convertMinuteToMillis(longBreakTime)){
         setCurrentMode(IDLE);
+        tone(buzzer,buzzerTone,completeBreakTime);
         nextMode = POMODORO;
         modeFinished = 1;
       }
@@ -193,13 +203,14 @@ void incrementTime() {
       if(currentMillis - stateStartTime > convertMinuteToMillis(pomodoroTime)){
         currentPomodoroCount++;
         modeFinished = 1;
+        tone(buzzer,buzzerTone,completePomodoroTime);        
         if (currentPomodoroCount == 4) {
-          setCurrentMode(IN_PROCESS);
+          setCurrentMode(LONG_BREAK);
           nextMode = LONG_BREAK;
         } else {
-          setCurrentMode(IN_PROCESS);
+          setCurrentMode(SHORT_BREAK);
           nextMode = SHORT_BREAK;
-        }
+        }        
       }
       
       break;
@@ -410,6 +421,10 @@ void resetPomodoroCount() {
 }
 
 void displayTime() {
+  if (currentMode == SHORT_BREAK || currentMode == LONG_BREAK) {
+    return;
+  }
+
   unsigned long currentMillis = millis();
   unsigned long millisPassed;
 
@@ -418,7 +433,8 @@ void displayTime() {
   int seconds = convertMillisToSeconds(millisPassed);
   int STm = (seconds / 60) % 60;
   int STs = seconds % 60;
-  
+
+  //Formant the String
   sprintf(tempString, "%.2d%.2d", STm, STs);
   setDecimals(0b00010000);
   s7s.print(tempString);
