@@ -165,7 +165,7 @@ void writeToDisplay() {
   }
   
   //Formant the String
-  if (seconds > 3600000) {
+  if (millisPassed > 3600000) {
     sprintf(tempString, "%.2d%.2d", STh, STm);
   } else {
     sprintf(tempString, "%.2d%.2d", STm, STs);
