@@ -1,11 +1,8 @@
 #include <SoftwareSerial.h>
 
-const int plusInPin = 2;
-const int minusInPin = 3;
+const int plusInPin = 0;
+const int minusInPin = 2;
 const int resetInPin = 4;
-
-const int plusOutPin = 12;
-const int minusOutPin = 11;
 
 int plusReading = LOW;
 int plusPrevious = LOW;
@@ -15,7 +12,7 @@ int resetReading = LOW;
 int resetPrevious = LOW;
 
 //s7s
-const int softwareTx = 8;
+const int softwareTx = 12; //to s7s RX
 const int softwareRx = 7;
 SoftwareSerial s7s(softwareRx, softwareTx);
 char tempString[10];
@@ -28,10 +25,6 @@ void setup() {
   pinMode(plusInPin, INPUT);
   pinMode(minusInPin, INPUT);
   pinMode(resetInPin, INPUT);
-  
-  //LEDs
-  pinMode(plusOutPin, OUTPUT);
-  pinMode(minusOutPin, OUTPUT);
   
   //Serial
   Serial.begin(9600);
@@ -47,11 +40,11 @@ void setup() {
 
   // Flash brightness values at the beginning
   setBrightness(0);  // Lowest brightness
-  delay(1500);
+  delay(500);
   setBrightness(127);  // Medium brightness
-  delay(1500);
+  delay(500);
   setBrightness(255);  // High brightness
-  delay(1500);
+  delay(500);
 
   // Clear the display before jumping into loop
   clearDisplay();
@@ -76,11 +69,6 @@ void handlePlus() {
   }
   plusPrevious = plusReading;
   
-  if (plusReading == LOW) {
-    digitalWrite(plusOutPin, HIGH);
-  } else {
-    digitalWrite(plusOutPin, LOW);
-  }
 }
 
 void handleMinus() {
@@ -93,13 +81,7 @@ void handleMinus() {
     }
     delay(50);
   }
-  minusPrevious = minusReading;
-
-  if(minusReading == LOW) {
-    digitalWrite(minusOutPin, HIGH);
-  } else {
-    digitalWrite(minusOutPin, LOW);
-  }    
+  minusPrevious = minusReading; 
 }
 
 void handleReset() {
