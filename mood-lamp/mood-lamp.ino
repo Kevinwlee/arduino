@@ -3,9 +3,9 @@ const int GREEN_PIN = 10;
 const int BLUE_PIN = 11;
 const int BTN_PIN = 7;
 
-int DISPLAY_TIME = 100;  // In milliseconds
-long SHOW_DURATION = 1800000; //30 minutes
-int startTime = 0;
+int DISPLAY_TIME = 50;  // In milliseconds, we like 50
+unsigned long SHOW_DURATION = 1800000; //30 minutes
+unsigned long startTime = 0;
 bool isFinished = false;
 
 void setup() {
@@ -14,26 +14,24 @@ void setup() {
   pinMode(GREEN_PIN, OUTPUT);
   pinMode(BLUE_PIN, OUTPUT);
   pinMode(BTN_PIN, INPUT);
-  
+
   startTime = millis();
   Serial.println("Setup");
 }
 
 
-void loop() {  
-  //TODO: look for button click to start the show :)
-  
+void loop() {
   int button = digitalRead(BTN_PIN);
   if (button == LOW) {
     Serial.println("BUTTON LOW");
     startTime = millis();
-    isFinished = false;  
+    isFinished = false;
   }
-  
+
   if (isFinished) {
     return;
   }
-
+  
   if (startTime + SHOW_DURATION >= millis()) {
     showSpectrum();
   } else {
@@ -46,13 +44,13 @@ void turnOffTheLights() {
   digitalWrite(RED_PIN, LOW);
   digitalWrite(GREEN_PIN, LOW);
   digitalWrite(BLUE_PIN, LOW);
-}  
+}
 
 void showSpectrum() {
-  int x;  // define an integer variable called "x" 
+  int x;  // define an integer variable called "x"
   for (x = 0; x < 768; x++) {
     showRGB(x);  // Call RGBspectrum() with our new x
-    delay(50);   // Delay for 10 ms (1/100th of a second) (we like 50)
+    delay(DISPLAY_TIME);   // Delay for 10 ms (1/100th of a second) (we like 50)
   }
 }
 
