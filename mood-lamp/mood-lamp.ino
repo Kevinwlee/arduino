@@ -47,10 +47,10 @@ void turnOffTheLights() {
 }
 
 void showSpectrum() {
-  int x;  // define an integer variable called "x"
+  int x;
   for (x = 0; x < 768; x++) {
-    showRGB(x);  // Call RGBspectrum() with our new x
-    delay(DISPLAY_TIME);   // Delay for 10 ms (1/100th of a second) (we like 50)
+    showRGB(x); 
+    delay(DISPLAY_TIME); //let's the light stay on for a little while
   }
 }
 
